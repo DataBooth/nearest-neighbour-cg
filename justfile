@@ -1,17 +1,25 @@
 # Detect compiler: prefer g++, fallback to clang++
 compiler := `if command -v g++ > /dev/null 2>&1; then echo g++; elif command -v clang++ > /dev/null 2>&1; then echo clang++; else echo ""; fi`
 
+# Set build directory variable
+build_dir := "build"
+
 # Default recipe: lists all available recipes
 default:
     @just --list
 
+
+## C++ recipes
+
+# Configure and build with CMake and Make
 build:
-    @if [ -z "{{compiler}}" ]; then \
-        echo "No C++ compiler found (g++ or clang++ required)"; exit 1; \
-    else \
-        echo "Using compiler: {{compiler}}"; \
-        {{compiler}} -std=c++17 -O2 nearest_neighbor.cpp -o nearest_neighbor; \
-    fi
+    mkdir -p {{build_dir}}
+    cd {{build_dir}} && cmake .. && make
+
+# Clean build artifacts
+clean:
+    rm -rf {{build_dir}}
+
 
 compiler:
     @if [ -z "{{compiler}}" ]; then \
@@ -22,10 +30,8 @@ compiler:
     fi
 
 run:
-    ./nearest_neighbor
+   cd {{build_dir}} && ./nearest_neighbour
 
-clean:
-    rm -f nearest_neighbor
 
 ## Python recipes
 
