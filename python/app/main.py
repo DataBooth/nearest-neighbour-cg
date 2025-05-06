@@ -1,13 +1,24 @@
+import sys
+import time
 from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from loguru import logger
 from sklearn.neighbors import KDTree
+
+sys.path.append("build")
+try:
+    import kd_tree_cpp
+except ImportError:
+    kd_tree_cpp = None
 
 FIXED_SEED = 42
 README_TITLE = "# `nearest-neighbour-cg`"
+
+logger.add("nn_search.log", rotation="5 MB", enqueue=True, backtrace=True)
 
 
 def query_point_wrapper(args):
@@ -33,6 +44,22 @@ class KDTree2D:
             return pool.map(query_point_wrapper, [(self, pt) for pt in query_points])
 
 
+class KDTree2D_CPP:
+    def __init__(self, point_cloud: PointCloud):
+        if kd_tree_cpp is None:
+            raise ImportError("C++ backend not available")
+        points = [kd_tree_cpp.Point(float(x), float(y)) for x, y in point_cloud.points]
+        self.cloud = kd_tree_cpp.PointCloud(points)
+        self.tree = kd_tree_cpp.KDTree2D(self.cloud)
+
+    def query(self, x, y):
+        idx, dist = self.tree.query(float(x), float(y))
+        return idx, dist
+
+    def query_parallel(self, query_points):
+        return [self.query(pt[0], pt[1]) for pt in query_points]
+
+
 class RandomPointGenerator:
     def __init__(self, seed: int):
         self.rng = np.random.default_rng(seed)
@@ -56,8 +83,14 @@ class NearestNeighbourApp:
     def __init__(self):
         self.seed = FIXED_SEED
         self.point_gen = RandomPointGenerator(self.seed)
+        points, query_points, cloud, backend = self.create_sidebar()
 
     def run(self):
+        st.set_page_config(
+            page_title="Nearest Neighbour Search Demo",
+            page_icon="🌲",
+            layout="wide",
+        )
         st.title("Nearest Neighbour Search Demo")
 
         # Tabs for README and App
@@ -68,60 +101,48 @@ class NearestNeighbourApp:
             self.show_readme_tab()
 
     def run_app_tab(self):
-        st.write(
-            "This demo allows you to generate random points and perform nearest neighbour search using a KDTree."
-        )
-
-        st.sidebar.subheader("Visualisation Notes:")
-        st.sidebar.write(
-            "Blue points are the input points, red points are the query points, and (after performing the nearest neighbour search) the green lines indicate the nearest neighbours."
-        )
-        st.sidebar.markdown("---")
-
-        # Sidebar controls
-        st.sidebar.subheader("Generate Settings for random points")
-        num_points = st.sidebar.slider("Number of input points", 100, 5000, 100, 100)
-        num_queries = st.sidebar.slider("Number of query points", 10, 1000, 10)
-        shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
-        x_min, x_max = st.sidebar.slider("X range", -100.0, 100.0, (-50.0, 50.0))
-        y_min, y_max = st.sidebar.slider("Y range", -100.0, 100.0, (-50.0, 50.0))
-        radius = st.sidebar.slider("Circle radius (if selected)", 1.0, 100.0, 40.0)
-        backend = st.sidebar.radio("Select backend", ["Python", "C++"])
-
-        # Regenerate points button
-        if st.sidebar.button("Regenerate Points"):
-            self.seed += 1
-            self.point_gen = RandomPointGenerator(self.seed)
-            st.session_state["nn_results"] = None  # Reset results
-            st.rerun()
-
-        # Generate points
-        if shape == "Rectangle":
-            points = self.point_gen.generate_rectangle(
-                num_points, (x_min, x_max), (y_min, y_max)
+        top_cols = st.columns([1, 1], gap="large")
+        with top_cols[0]:
+            st.write(
+                "This demo allows you to generate random points and perform nearest neighbour search using a KDTree."
             )
-        else:
-            center = ((x_min + x_max) / 2, (y_min + y_max) / 2)
-            points = self.point_gen.generate_circle(num_points, center, radius)
-        query_points = self.point_gen.generate_rectangle(
-            num_queries, (x_min, x_max), (y_min, y_max)
-        )
-        cloud = PointCloud(points)
+        with top_cols[1]:
+            # Run NN search button
+            if "nn_results" not in st.session_state:
+                st.session_state["nn_results"] = None
 
-        # Run NN search button
-        if "nn_results" not in st.session_state:
-            st.session_state["nn_results"] = None
+            if st.button("Run Nearest Neighbour Search"):
+                logger.info(
+                    f"Run started with parameters: "
+                    f"num_points={num_points}, num_queries={num_queries}, "
+                    f"shape={shape}, x_range=({x_min},{x_max}), y_range=({y_min},{y_max}), "
+                    f"radius={radius}, backend={backend}"
+                )
+                t0 = time.perf_counter()
+                if backend == "Python":
+                    kd = KDTree2D(cloud)
+                    results = kd.query_parallel(query_points)
+                elif backend == "C++":
+                    if kd_tree_cpp is None:
+                        st.error("C++ backend is not available.")
+                        results = [(None, None)] * len(query_points)
+                    else:
+                        kd = KDTree2D_CPP(cloud)
+                        results = kd.query_parallel(query_points)
+                else:
+                    st.warning("Unknown backend selected.")
+                    results = [(None, None)] * len(query_points)
+                t1 = time.perf_counter()
+                elapsed = t1 - t0
+                logger.success(
+                    f"Run completed | backend={backend} | elapsed={elapsed:.4f}s"
+                )
+                st.session_state["nn_results"] = results
+                st.toast(
+                    f"Run completed in {elapsed:.4f} seconds using {backend} backend.",
+                    icon="✅",
+                )
 
-        if st.button("Run Nearest Neighbour Search"):
-            if backend == "Python":
-                kd = KDTree2D(cloud)
-                results = kd.query_parallel(query_points)
-            else:
-                st.warning("C++ backend not implemented in this demo.")
-                results = [(None, None)] * len(query_points)
-            st.session_state["nn_results"] = results
-
-        # Persistent plot container
         plot_container = st.container()
 
         # Show results table and plot after NN search, otherwise just plot points
@@ -155,6 +176,48 @@ class NearestNeighbourApp:
 
             df = pd.DataFrame(results_data)
             st.dataframe(df, use_container_width=True)
+
+    def create_sidebar(self):
+        st.sidebar.subheader("Visualisation Notes:")
+        st.sidebar.write(
+            "Blue points are the input points, red points are the query points, and (after performing the nearest neighbour search) the green lines indicate the nearest neighbours."
+        )
+        st.sidebar.markdown("---")
+
+        # Sidebar controls
+
+        backend = st.sidebar.radio("Select backend", ["Python", "C++"])
+
+        st.sidebar.markdown("---")
+
+        st.sidebar.subheader("Generate Settings for random points")
+        num_points = st.sidebar.slider("Number of input points", 100, 5000, 100, 100)
+        num_queries = st.sidebar.slider("Number of query points", 10, 1000, 10)
+        shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
+        x_min, x_max = st.sidebar.slider("X range", -100.0, 100.0, (-50.0, 50.0))
+        y_min, y_max = st.sidebar.slider("Y range", -100.0, 100.0, (-50.0, 50.0))
+        radius = st.sidebar.slider("Circle radius (if selected)", 1.0, 100.0, 40.0)
+
+        # Regenerate points button
+        if st.sidebar.button("Regenerate Points"):
+            self.seed += 1
+            self.point_gen = RandomPointGenerator(self.seed)
+            st.session_state["nn_results"] = None  # Reset results
+            st.rerun()
+
+        # Generate points
+        if shape == "Rectangle":
+            points = self.point_gen.generate_rectangle(
+                num_points, (x_min, x_max), (y_min, y_max)
+            )
+        else:
+            center = ((x_min + x_max) / 2, (y_min + y_max) / 2)
+            points = self.point_gen.generate_circle(num_points, center, radius)
+        query_points = self.point_gen.generate_rectangle(
+            num_queries, (x_min, x_max), (y_min, y_max)
+        )
+        cloud = PointCloud(points)
+        return points, query_points, cloud, backend
 
     def plot(self, points, query_points, results=None, container=None):
         if container is None:
