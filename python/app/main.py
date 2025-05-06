@@ -80,8 +80,8 @@ class NearestNeighbourApp:
 
         # Sidebar controls
         st.sidebar.subheader("Generate Settings for random points")
-        num_points = st.sidebar.slider("Number of input points", 10, 1000, 200, 10)
-        num_queries = st.sidebar.slider("Number of query points", 1, 100, 10)
+        num_points = st.sidebar.slider("Number of input points", 100, 5000, 100, 100)
+        num_queries = st.sidebar.slider("Number of query points", 10, 1000, 10)
         shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
         x_min, x_max = st.sidebar.slider("X range", -100.0, 100.0, (-50.0, 50.0))
         y_min, y_max = st.sidebar.slider("Y range", -100.0, 100.0, (-50.0, 50.0))
@@ -93,7 +93,7 @@ class NearestNeighbourApp:
             self.seed += 1
             self.point_gen = RandomPointGenerator(self.seed)
             st.session_state["nn_results"] = None  # Reset results
-            st.experimental_rerun()
+            st.rerun()
 
         # Generate points
         if shape == "Rectangle":
@@ -193,12 +193,12 @@ class NearestNeighbourApp:
                             )
                         )
             fig.update_layout(
-                title="Nearest Neighbour Visualisation",
+                # title="Nearest Neighbour Visualisation",
                 xaxis_title="X",
                 yaxis_title="Y",
                 width=700,
                 height=700,
-                legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+                legend=dict(yanchor="bottom", y=0.99, xanchor="right", x=0.01),
             )
             st.plotly_chart(fig)
 
