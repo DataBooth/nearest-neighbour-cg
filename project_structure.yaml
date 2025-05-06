@@ -1,0 +1,8 @@
+files:
+  - cpp/include/project_name/kd_tree.h
+  - cpp/src/kd_tree.cpp
+  - cpp/bindings/bindings.cpp
+  - python/app/main.py
+  - python/lib/__init__.py
+  - CMakeLists.txt
+  - justfile
