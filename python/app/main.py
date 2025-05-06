@@ -1,6 +1,6 @@
 import sys
 import time
-from multiprocessing import Pool
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,7 @@ import streamlit as st
 from loguru import logger
 from sklearn.neighbors import KDTree
 
+# Try to import the C++ backend
 sys.path.append("build")
 try:
     import kd_tree_cpp
@@ -21,55 +22,116 @@ README_TITLE = "# `nearest-neighbour-cg`"
 logger.add("nn_search.log", rotation="5 MB", enqueue=True, backtrace=True)
 
 
-def query_point_wrapper(args):
-    instance, pt = args
-    return instance.query(pt[0], pt[1])
-
-
 class PointCloud:
+    """Encapsulates a set of 2D points."""
+
     def __init__(self, points: np.ndarray):
+        """
+        Args:
+            points: Nx2 numpy array of (x, y) coordinates.
+        """
         self.points = points
 
 
 class KDTree2D:
+    """Python KDTree wrapper using sklearn."""
+
     def __init__(self, point_cloud: PointCloud):
+        """
+        Args:
+            point_cloud: PointCloud instance.
+        """
         self.tree = KDTree(point_cloud.points)
 
-    def query(self, x, y):
+    def query(self, x: float, y: float) -> Tuple[int, float]:
+        """
+        Find nearest neighbor for (x, y).
+        Returns:
+            Tuple of (index, distance)
+        """
         dist, ind = self.tree.query([[x, y]], k=1)
-        return ind[0][0], dist[0][0]
+        return int(ind[0][0]), float(dist[0][0])
 
-    def query_parallel(self, query_points):
-        with Pool() as pool:
-            return pool.map(query_point_wrapper, [(self, pt) for pt in query_points])
+    def query_parallel(self, query_points: np.ndarray) -> List[Tuple[int, float]]:
+        """
+        Query all points (serial, for Streamlit safety).
+        Args:
+            query_points: Nx2 numpy array.
+        Returns:
+            List of (index, distance) tuples.
+        """
+        return [self.query(pt[0], pt[1]) for pt in query_points]
 
 
 class KDTree2D_CPP:
+    """C++ KDTree wrapper using pybind11."""
+
     def __init__(self, point_cloud: PointCloud):
+        """
+        Args:
+            point_cloud: PointCloud instance.
+        Raises:
+            ImportError: If C++ backend is unavailable.
+        """
         if kd_tree_cpp is None:
             raise ImportError("C++ backend not available")
         points = [kd_tree_cpp.Point(float(x), float(y)) for x, y in point_cloud.points]
         self.cloud = kd_tree_cpp.PointCloud(points)
         self.tree = kd_tree_cpp.KDTree2D(self.cloud)
 
-    def query(self, x, y):
+    def query(self, x: float, y: float) -> Tuple[int, float]:
+        """
+        Find nearest neighbor for (x, y) using C++ backend.
+        Returns:
+            Tuple of (index, distance)
+        """
         idx, dist = self.tree.query(float(x), float(y))
-        return idx, dist
+        return int(idx), float(dist)
 
-    def query_parallel(self, query_points):
+    def query_parallel(self, query_points: np.ndarray) -> List[Tuple[int, float]]:
+        """
+        Query all points (serial).
+        Args:
+            query_points: Nx2 numpy array.
+        Returns:
+            List of (index, distance) tuples.
+        """
         return [self.query(pt[0], pt[1]) for pt in query_points]
 
 
 class RandomPointGenerator:
+    """Random point generator for rectangles and circles."""
+
     def __init__(self, seed: int):
+        """
+        Args:
+            seed: Random seed.
+        """
         self.rng = np.random.default_rng(seed)
 
-    def generate_rectangle(self, num_points, x_range, y_range):
+    def generate_rectangle(
+        self,
+        num_points: int,
+        x_range: Tuple[float, float],
+        y_range: Tuple[float, float],
+    ) -> np.ndarray:
+        """
+        Generate points in a rectangle.
+        Returns:
+            Nx2 numpy array.
+        """
         xs = self.rng.uniform(x_range[0], x_range[1], num_points)
         ys = self.rng.uniform(y_range[0], y_range[1], num_points)
         return np.column_stack((xs, ys))
 
-    def generate_circle(self, num_points, center, radius):
+    def generate_circle(
+        self, num_points: int, center: Tuple[float, float], radius: float
+    ) -> np.ndarray:
+        """
+        Generate points in a circle.
+        Returns:
+            Nx2 numpy array.
+        """
         points = []
         while len(points) < num_points:
             x = self.rng.uniform(center[0] - radius, center[0] + radius)
@@ -80,49 +142,110 @@ class RandomPointGenerator:
 
 
 class NearestNeighbourApp:
+    """Main Streamlit app for nearest neighbour demo."""
+
     def __init__(self):
+        """Initialise app state and sidebar."""
         self.seed = FIXED_SEED
         self.point_gen = RandomPointGenerator(self.seed)
-        points, query_points, cloud, backend = self.create_sidebar()
+        self.sidebar_state = self.create_sidebar()
 
-    def run(self):
-        st.set_page_config(
-            page_title="Nearest Neighbour Search Demo",
-            page_icon="🌲",
-            layout="wide",
+    def create_sidebar(self) -> dict:
+        """
+        Create sidebar controls and return their values.
+        Returns:
+            Dictionary of sidebar parameters.
+        """
+        backend = st.sidebar.radio("Select backend", ["Python", "C++"])
+        st.sidebar.markdown("---")
+
+        st.sidebar.subheader("Visualisation Notes:")
+        st.sidebar.write(
+            "Blue points are the input points, red points are the query points, and (after performing the nearest neighbour search) the green lines indicate the nearest neighbours."
         )
-        st.title("Nearest Neighbour Search Demo")
+        st.sidebar.markdown("---")
+        if st.sidebar.button("Clear/Regenerate Points"):
+            self.seed += 1
+            self.point_gen = RandomPointGenerator(self.seed)
+            st.session_state["nn_results"] = None
+            st.rerun()
+        st.sidebar.subheader("Generate Settings for random points")
+        num_points = st.sidebar.slider("Number of input points", 100, 5000, 100, 100)
+        num_queries = st.sidebar.slider("Number of query points", 10, 1000, 10)
+        shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
+        x_min, x_max = st.sidebar.slider("X range", -100.0, 100.0, (-50.0, 50.0))
+        y_min, y_max = st.sidebar.slider("Y range", -100.0, 100.0, (-50.0, 50.0))
+        radius = st.sidebar.slider("Circle radius (if selected)", 1.0, 100.0, 40.0)
 
-        # Tabs for README and App
+        return dict(
+            backend=backend,
+            num_points=num_points,
+            num_queries=num_queries,
+            shape=shape,
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            radius=radius,
+        )
+
+    def generate_points(self) -> Tuple[np.ndarray, np.ndarray, PointCloud]:
+        """
+        Generate input and query points based on sidebar state.
+        Returns:
+            Tuple: (input points, query points, PointCloud)
+        """
+        s = self.sidebar_state
+        if s["shape"] == "Rectangle":
+            points = self.point_gen.generate_rectangle(
+                s["num_points"], (s["x_min"], s["x_max"]), (s["y_min"], s["y_max"])
+            )
+        else:
+            center = ((s["x_min"] + s["x_max"]) / 2, (s["y_min"] + s["y_max"]) / 2)
+            points = self.point_gen.generate_circle(
+                s["num_points"], center, s["radius"]
+            )
+        query_points = self.point_gen.generate_rectangle(
+            s["num_queries"], (s["x_min"], s["x_max"]), (s["y_min"], s["y_max"])
+        )
+        cloud = PointCloud(points)
+        return points, query_points, cloud
+
+    def run(self) -> None:
+        """Main entry point for the app."""
+
+        st.title("Nearest Neighbour Search Demo")
         tabs = st.tabs(["Demo App", "README"])
         with tabs[0]:
             self.run_app_tab()
         with tabs[1]:
             self.show_readme_tab()
 
-    def run_app_tab(self):
-        top_cols = st.columns([1, 1], gap="large")
+    def run_app_tab(self) -> None:
+        """Run the main demo tab, including controls and results."""
+        points, query_points, cloud = self.generate_points()
+        s = self.sidebar_state
+        if "nn_results" not in st.session_state:
+            st.session_state["nn_results"] = None
+
+        # Two columns: info text (left), run button (right)
+        top_cols = st.columns([2, 1], gap="large")
         with top_cols[0]:
             st.write(
                 "This demo allows you to generate random points and perform nearest neighbour search using a KDTree."
             )
         with top_cols[1]:
-            # Run NN search button
-            if "nn_results" not in st.session_state:
-                st.session_state["nn_results"] = None
-
             if st.button("Run Nearest Neighbour Search"):
                 logger.info(
-                    f"Run started with parameters: "
-                    f"num_points={num_points}, num_queries={num_queries}, "
-                    f"shape={shape}, x_range=({x_min},{x_max}), y_range=({y_min},{y_max}), "
-                    f"radius={radius}, backend={backend}"
+                    f"Run started | num_points={s['num_points']}, num_queries={s['num_queries']}, "
+                    f"shape={s['shape']}, x_range=({s['x_min']},{s['x_max']}), y_range=({s['y_min']},{s['y_max']}), "
+                    f"radius={s['radius']}, backend={s['backend']}, seed={self.seed}"
                 )
                 t0 = time.perf_counter()
-                if backend == "Python":
+                if s["backend"] == "Python":
                     kd = KDTree2D(cloud)
                     results = kd.query_parallel(query_points)
-                elif backend == "C++":
+                elif s["backend"] == "C++":
                     if kd_tree_cpp is None:
                         st.error("C++ backend is not available.")
                         results = [(None, None)] * len(query_points)
@@ -135,25 +258,26 @@ class NearestNeighbourApp:
                 t1 = time.perf_counter()
                 elapsed = t1 - t0
                 logger.success(
-                    f"Run completed | backend={backend} | elapsed={elapsed:.4f}s"
+                    f"Run completed | backend={s['backend']} | elapsed={elapsed:.4f}s"
                 )
                 st.session_state["nn_results"] = results
                 st.toast(
-                    f"Run completed in {elapsed:.4f} seconds using {backend} backend.",
+                    f"Run completed in {elapsed:.4f} seconds using {s['backend']} backend.",
                     icon="✅",
                 )
 
-        plot_container = st.container()
-
-        # Show results table and plot after NN search, otherwise just plot points
+        plot_container = st.container(border=True)
         results = st.session_state["nn_results"]
+        results_data = []
         if results is not None:
-            # Results table
             st.subheader("Results Table")
-            results_data = []
             for i, (qp, res) in enumerate(zip(query_points, results)):
                 idx, dist = res
-                neighbour = points[idx] if idx is not None else (None, None)
+                neighbour = (
+                    points[idx]
+                    if idx is not None and idx < len(points)
+                    else (None, None)
+                )
                 results_data.append(
                     {
                         "Query #": i + 1,
@@ -165,61 +289,30 @@ class NearestNeighbourApp:
                         "Distance": dist,
                     }
                 )
-
-        # Always plot, with or without NN lines
         self.plot(points, query_points, results, container=plot_container)
         if results is not None:
             st.toast("Nearest neighbour search completed.", icon="✅")
             st.write(
                 "The lines indicate the nearest neighbour connections between query points and input points."
             )
-
             df = pd.DataFrame(results_data)
             st.dataframe(df, use_container_width=True)
 
-    def create_sidebar(self):
-        st.sidebar.subheader("Visualisation Notes:")
-        st.sidebar.write(
-            "Blue points are the input points, red points are the query points, and (after performing the nearest neighbour search) the green lines indicate the nearest neighbours."
-        )
-        st.sidebar.markdown("---")
-
-        # Sidebar controls
-
-        backend = st.sidebar.radio("Select backend", ["Python", "C++"])
-
-        st.sidebar.markdown("---")
-
-        st.sidebar.subheader("Generate Settings for random points")
-        num_points = st.sidebar.slider("Number of input points", 100, 5000, 100, 100)
-        num_queries = st.sidebar.slider("Number of query points", 10, 1000, 10)
-        shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
-        x_min, x_max = st.sidebar.slider("X range", -100.0, 100.0, (-50.0, 50.0))
-        y_min, y_max = st.sidebar.slider("Y range", -100.0, 100.0, (-50.0, 50.0))
-        radius = st.sidebar.slider("Circle radius (if selected)", 1.0, 100.0, 40.0)
-
-        # Regenerate points button
-        if st.sidebar.button("Regenerate Points"):
-            self.seed += 1
-            self.point_gen = RandomPointGenerator(self.seed)
-            st.session_state["nn_results"] = None  # Reset results
-            st.rerun()
-
-        # Generate points
-        if shape == "Rectangle":
-            points = self.point_gen.generate_rectangle(
-                num_points, (x_min, x_max), (y_min, y_max)
-            )
-        else:
-            center = ((x_min + x_max) / 2, (y_min + y_max) / 2)
-            points = self.point_gen.generate_circle(num_points, center, radius)
-        query_points = self.point_gen.generate_rectangle(
-            num_queries, (x_min, x_max), (y_min, y_max)
-        )
-        cloud = PointCloud(points)
-        return points, query_points, cloud, backend
-
-    def plot(self, points, query_points, results=None, container=None):
+    def plot(
+        self,
+        points: np.ndarray,
+        query_points: np.ndarray,
+        results: Optional[List[Tuple[int, float]]] = None,
+        container: Optional[Any] = None,
+    ) -> None:
+        """
+        Plot points and nearest neighbour lines.
+        Args:
+            points: Nx2 array of input points.
+            query_points: Mx2 array of query points.
+            results: List of (index, distance) tuples or None.
+            container: Streamlit container to plot in.
+        """
         if container is None:
             container = st
         with container:
@@ -244,7 +337,7 @@ class NearestNeighbourApp:
             )
             if results is not None:
                 for (qx, qy), (idx, dist) in zip(query_points, results):
-                    if idx is not None:
+                    if idx is not None and idx < len(points):
                         nx, ny = points[idx]
                         fig.add_trace(
                             go.Scatter(
@@ -256,7 +349,6 @@ class NearestNeighbourApp:
                             )
                         )
             fig.update_layout(
-                # title="Nearest Neighbour Visualisation",
                 xaxis_title="X",
                 yaxis_title="Y",
                 width=700,
@@ -265,7 +357,8 @@ class NearestNeighbourApp:
             )
             st.plotly_chart(fig)
 
-    def show_readme_tab(self):
+    def show_readme_tab(self) -> None:
+        """Display README tab."""
         try:
             with open("README.md", "r") as f:
                 readme = f.read()
@@ -276,5 +369,10 @@ class NearestNeighbourApp:
 
 
 if __name__ == "__main__":
+    st.set_page_config(
+        page_title="Nearest Neighbour Search Demo",
+        page_icon="🌲",
+        layout="wide",
+    )
     app = NearestNeighbourApp()
     app.run()
