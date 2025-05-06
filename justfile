@@ -3,7 +3,6 @@ compiler := `if command -v g++ > /dev/null 2>&1; then echo g++; elif command -v 
 
 # Default recipe: lists all available recipes
 default:
-    @echo "Available recipes:"
     @just --list
 
 build:
@@ -18,8 +17,10 @@ compiler:
     @if [ -z "{{compiler}}" ]; then \
         echo "No C++ compiler found (g++ or clang++ required)"; exit 1; \
     else \
-        echo "Using compiler: {{compiler}}"; \
+        version=$({{compiler}} --version | head -n 1); \
+        echo "Using compiler: {{compiler}} - version: $version"; \
     fi
+
 run:
     ./nearest_neighbor
 
