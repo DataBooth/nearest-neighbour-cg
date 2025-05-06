@@ -14,11 +14,16 @@ default:
 # Configure and build with CMake and Make
 build:
     mkdir -p {{build_dir}}
-    cd {{build_dir}} && cmake .. && make
+    cd build && cmake -DPython3_EXECUTABLE="$(which python)" .. && make
 
 # Clean build artifacts
 clean:
     rm -rf {{build_dir}}
+
+
+rebuild:
+    just clean
+    just build
 
 
 compiler:
