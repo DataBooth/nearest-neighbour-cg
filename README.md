@@ -57,26 +57,16 @@ The **nearest neighbor problem**, finding the closest point(s) in a dataset to a
 By studying nearest neighbor algorithms, one gains insight into how computational geometry tackles the challenge of organising and querying spatial data efficiently, which is critical for performance in many applications.
 
 
-## References
+## Introductory CG and Nearest Neighbour References
 
-[1]: https://en.wikipedia.org/wiki/Computational_geometry
-
-[2]: https://www.cs.cmu.edu/~15451-f22/lectures/lec21-geometry.pdf
-
-[3]: https://cimec.org.ar/twiki/pub/Cimec/GeometriaComputacional/cg.basics.pdf
-
-[4]: https://www.youtube.com/watch?v=qMgF8Fcrk_c
-
-[5]: https://www.cs.umd.edu/class/spring2020/cmsc754/Lects/lect01-intro.pdf
-
-[6]: https://www.longdom.org/open-access/importance-of-algorithms-in-computational-geometry-for-analyzing-geometrical-analysis-101640.html
-
-[7]: https://www.cs.cmu.edu/~15451-s19/lectures/lec22-nearest-neighbor.pdf
-
-[8]: https://www.studysmarter.co.uk/explanations/math/geometry/computational-geometry/
-
-[9]: https://cs.utdallas.edu/6717/dr-benjamin-raichel-and-researcher-two-important-discoveries-computational-geometry/
-
-[10]: https://www.cs.cmu.edu/afs/cs/academic/class/15456-s10/ClassNotes/nn.pdf
-
-[11]: https://en.wikipedia.org/wiki/Nearest_neighbor_search
+1. [Computational Geometry - Wikipedia](https://en.wikipedia.org/wiki/Computational_geometry)  
+2. [Lecture Notes on Computational Geometry - CMU](https://www.cs.cmu.edu/~15451-f22/lectures/lec21-geometry.pdf)  
+3. [Basics of Computational Geometry - CIMEC](https://cimec.org.ar/twiki/pub/Cimec/GeometriaComputacional/cg.basics.pdf)  
+4. [Introduction to Computational Geometry - YouTube](https://www.youtube.com/watch?v=qMgF8Fcrk_c)  
+5. [Introduction to Computational Geometry - UMD](https://www.cs.umd.edu/class/spring2020/cmsc754/Lects/lect01-intro.pdf)  
+6. [Importance of Algorithms in Computational Geometry - Longdom](https://www.longdom.org/open-access/importance-of-algorithms-in-computational-geometry-for-analyzing-geometrical-analysis-101640.html)  
+7. [Nearest Neighbor Lecture Notes - CMU](https://www.cs.cmu.edu/~15451-s19/lectures/lec22-nearest-neighbor.pdf)  
+8. [StudySmarter Explanation on Computational Geometry](https://www.studysmarter.co.uk/explanations/math/geometry/computational-geometry/)  
+9. [Research Discoveries in Computational Geometry - UT Dallas](https://cs.utdallas.edu/6717/dr-benjamin-raichel-and-researcher-two-important-discoveries-computational-geometry/)  
+10. [Nearest Neighbor Class Notes - CMU](https://www.cs.cmu.edu/afs/cs/academic/class/15456-s10/ClassNotes/nn.pdf)  
+11. [Nearest Neighbor Search - Wikipedia](https://en.wikipedia.org/wiki/Nearest_neighbor_search)  

@@ -26,3 +26,8 @@ run:
 
 clean:
     rm -f nearest_neighbor
+
+## Python recipes
+
+app app_name="python/app/main.py":
+   streamlit run {{app_name}}
