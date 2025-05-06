@@ -58,10 +58,10 @@ class NearestNeighbourApp:
         self.point_gen = RandomPointGenerator(self.seed)
 
     def run(self):
-        st.title("Nearest Neighbour Search Demo with KDTree")
+        st.title("Nearest Neighbour Search Demo")
 
         # Tabs for README and App
-        tabs = st.tabs(["App", "README"])
+        tabs = st.tabs(["Demo App", "README"])
         with tabs[0]:
             self.run_app_tab()
         with tabs[1]:
@@ -72,8 +72,14 @@ class NearestNeighbourApp:
             "This demo allows you to generate random points and perform nearest neighbour search using a KDTree."
         )
 
+        st.sidebar.subheader("Visualisation Notes:")
+        st.sidebar.write(
+            "Blue points are the input points, red points are the query points, and (after performing the nearest neighbour search) the green lines indicate the nearest neighbours."
+        )
+        st.sidebar.markdown("---")
+
         # Sidebar controls
-        st.sidebar.header("Point Generation Settings")
+        st.sidebar.subheader("Generate Settings for random points")
         num_points = st.sidebar.slider("Number of input points", 10, 1000, 200, 10)
         num_queries = st.sidebar.slider("Number of query points", 1, 100, 10)
         shape = st.sidebar.selectbox("Input points shape", ["Rectangle", "Circle"])
@@ -102,9 +108,6 @@ class NearestNeighbourApp:
         )
         cloud = PointCloud(points)
 
-        # Persistent plot container
-        plot_container = st.container()
-
         # Run NN search button
         if "nn_results" not in st.session_state:
             st.session_state["nn_results"] = None
@@ -117,6 +120,9 @@ class NearestNeighbourApp:
                 st.warning("C++ backend not implemented in this demo.")
                 results = [(None, None)] * len(query_points)
             st.session_state["nn_results"] = results
+
+        # Persistent plot container
+        plot_container = st.container()
 
         # Show results table and plot after NN search, otherwise just plot points
         results = st.session_state["nn_results"]
@@ -138,20 +144,22 @@ class NearestNeighbourApp:
                         "Distance": dist,
                     }
                 )
-            df = pd.DataFrame(results_data)
-            st.dataframe(df, use_container_width=True)
 
         # Always plot, with or without NN lines
         self.plot(points, query_points, results, container=plot_container)
+        if results is not None:
+            st.toast("Nearest neighbour search completed.", icon="✅")
+            st.write(
+                "The lines indicate the nearest neighbour connections between query points and input points."
+            )
+
+            df = pd.DataFrame(results_data)
+            st.dataframe(df, use_container_width=True)
 
     def plot(self, points, query_points, results=None, container=None):
         if container is None:
             container = st
         with container:
-            st.subheader("Visualisation")
-            st.write(
-                "Blue points are the input points, red points are the query points, and green lines indicate the nearest neighbours."
-            )
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
@@ -185,7 +193,7 @@ class NearestNeighbourApp:
                             )
                         )
             fig.update_layout(
-                title="Nearest Neighbour Visualization",
+                title="Nearest Neighbour Visualisation",
                 xaxis_title="X",
                 yaxis_title="Y",
                 width=700,
@@ -193,9 +201,6 @@ class NearestNeighbourApp:
                 legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
             )
             st.plotly_chart(fig)
-            st.write(
-                "The lines indicate the nearest neighbour connections between query points and input points."
-            )
 
     def show_readme_tab(self):
         try:
