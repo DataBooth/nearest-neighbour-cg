@@ -91,7 +91,7 @@ class ProjectStructure:
 
 if __name__ == "__main__":
     # Example usage
-    creator = ProjectStructure("project_structure.yaml", base_dir="nearest-neighbor")
+    creator = ProjectStructure("project_structure.yaml", base_dir=".")
     creator.load_config()
     creator.create()
 
