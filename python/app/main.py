@@ -9,6 +9,12 @@ import streamlit as st
 from loguru import logger
 from sklearn.neighbors import KDTree
 
+from src.kdtree_backend import PythonKDTree
+# from python_duckdb_backend import DuckDBNearestNeighbour
+# from python_cgal_backend import CGALKDTreeBackend
+# from python_cpp_backend import CppKDTreeBackend
+
+
 # Try to import the C++ backend
 sys.path.append("build")
 try:
@@ -33,34 +39,34 @@ class PointCloud:
         self.points = points
 
 
-class KDTree2D:
-    """Python KDTree wrapper using sklearn."""
+# class KDTree2D:
+#     """Python KDTree wrapper using sklearn."""
 
-    def __init__(self, point_cloud: PointCloud):
-        """
-        Args:
-            point_cloud: PointCloud instance.
-        """
-        self.tree = KDTree(point_cloud.points)
+#     def __init__(self, point_cloud: PointCloud):
+#         """
+#         Args:
+#             point_cloud: PointCloud instance.
+#         """
+#         self.tree = KDTree(point_cloud.points)
 
-    def query(self, x: float, y: float) -> Tuple[int, float]:
-        """
-        Find nearest neighbor for (x, y).
-        Returns:
-            Tuple of (index, distance)
-        """
-        dist, ind = self.tree.query([[x, y]], k=1)
-        return int(ind[0][0]), float(dist[0][0])
+#     def query(self, x: float, y: float) -> Tuple[int, float]:
+#         """
+#         Find nearest neighbor for (x, y).
+#         Returns:
+#             Tuple of (index, distance)
+#         """
+#         dist, ind = self.tree.query([[x, y]], k=1)
+#         return int(ind[0][0]), float(dist[0][0])
 
-    def query_parallel(self, query_points: np.ndarray) -> List[Tuple[int, float]]:
-        """
-        Query all points (serial, for Streamlit safety).
-        Args:
-            query_points: Nx2 numpy array.
-        Returns:
-            List of (index, distance) tuples.
-        """
-        return [self.query(pt[0], pt[1]) for pt in query_points]
+#     def query_parallel(self, query_points: np.ndarray) -> List[Tuple[int, float]]:
+#         """
+#         Query all points (serial, for Streamlit safety).
+#         Args:
+#             query_points: Nx2 numpy array.
+#         Returns:
+#             List of (index, distance) tuples.
+#         """
+#         return [self.query(pt[0], pt[1]) for pt in query_points]
 
 
 class KDTree2D_CPP:
@@ -243,7 +249,7 @@ class NearestNeighbourApp:
                 )
                 t0 = time.perf_counter()
                 if s["backend"] == "Python":
-                    kd = KDTree2D(cloud)
+                    kd = PythonKDTree(points)
                     results = kd.query_parallel(query_points)
                 elif s["backend"] == "C++":
                     if kd_tree_cpp is None:
