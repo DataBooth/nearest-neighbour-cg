@@ -1,6 +1,11 @@
 from pathlib import Path
 import yaml
 
+# TODO: This is a work in progress. The code is not complete and may not work as intended.
+#        See also: project_structure.yaml for the expected structure.
+#        The code is intended to create a project structure based on a YAML configuration file.
+#        The YAML file should contain a list of files to be created in the project directory.
+
 
 class ProjectStructure:
     def __init__(self, config_path, base_dir="project"):

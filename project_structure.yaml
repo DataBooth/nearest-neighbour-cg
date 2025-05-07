@@ -1,3 +1,8 @@
+ProjectStructure:
+  name: nearest_neighbor_cg
+  description: A project that implements a KD-Tree data structure with Python bindings.
+  version: 1.0.0
+
 files:
   - cpp/include/project_name/kd_tree.h
   - cpp/src/kd_tree.cpp
@@ -6,3 +11,8 @@ files:
   - python/lib/__init__.py
   - CMakeLists.txt
   - justfile
+  - README.md
+  - LICENSE
+  - .gitignore
+  - Dockerfile
+  - .dockerignore
