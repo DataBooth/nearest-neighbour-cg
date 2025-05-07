@@ -99,7 +99,7 @@ The app’s architecture is designed for clarity and extensibility:
 
 By providing multiple backends and a unified interface, this demo not only showcases the computational geometry foundations of the nearest neighbour problem, but also offers a practical comparison of algorithmic and data engineering strategies-from classic C++ libraries to modern SQL analytics.
 
-![Nearest Neighbour Demo App](docs/images/nearest-neighbour-cg.png)
+![Nearest Neighbour Demo App](./docs/images/nearest-neighbour-cg.png)
 
 ## References: Introductory CG and Nearest Neighbour Algorithms
 
