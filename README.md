@@ -95,9 +95,11 @@ The app’s architecture is designed for clarity and extensibility:
 
 - **Backend modules** encapsulate each algorithm and data structure, exposing a consistent interface for queries and benchmarking.
 - **Frontend visualisation** (via [Streamlit](https://streamlit.io) allows users to interactively generate data, run searches, and compare results across backends.
-- **Documentation and methods** (see [`README_methods.md`](README_methods.md)) explain the theory and implementation details, helping you understand both the “how” and the “why” of each approach.
+- **Documentation and methods** (see [`README_methods.md`](docs/README_methods.md)) explain the theory and implementation details, helping you understand both the “how” and the “why” of each approach.
 
 By providing multiple backends and a unified interface, this demo not only showcases the computational geometry foundations of the nearest neighbour problem, but also offers a practical comparison of algorithmic and data engineering strategies-from classic C++ libraries to modern SQL analytics.
+
+![Nearest Neighbour Demo App](docs/images/nearest-neighbour-cg.png)
 
 ## References: Introductory CG and Nearest Neighbour Algorithms
 

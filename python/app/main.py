@@ -17,7 +17,7 @@ except ImportError:
     kd_tree_cpp = None
 
 FIXED_SEED = 42
-README_TITLE = "# `nearest-neighbour-cg`"
+README_TITLE = "**`nearest-neighbour-cg`**"
 
 logger.add("nn_search.log", rotation="5 MB", enqueue=True, backtrace=True)
 
