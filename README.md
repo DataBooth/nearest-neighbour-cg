@@ -1,10 +1,19 @@
-# `nearest-neighbour-cg`
+**`nearest-neighbour-cg`**
 
-Implementation of nearest neighbour calculations for Computational Geometry demo
+# Implementations of nearest neighbour calculations for Computational Geometry (CG): A demonstration.
 
-______________________________________________________________________
+- [Implementations of nearest neighbour calculations for Computational Geometry (CG): A demonstration.](#implementations-of-nearest-neighbour-calculations-for-computational-geometry-cg-a-demonstration)
+  - [What is Computational Geometry and why does it matter?](#what-is-computational-geometry-and-why-does-it-matter)
+  - [Applications of Computational Geometry](#applications-of-computational-geometry)
+    - [Automated Embroidery](#automated-embroidery)
+  - [Tools and C++ Libraries](#tools-and-c-libraries)
+    - [C++ Libraries](#c-libraries)
+    - [Python Libraries](#python-libraries)
+  - [DEMO: Nearest Neighbour (NN) Problem](#demo-nearest-neighbour-nn-problem)
+    - [Demo App and Backend Approach](#demo-app-and-backend-approach)
+  - [References: Introductory CG and Nearest Neighbour Algorithms](#references-introductory-cg-and-nearest-neighbour-algorithms)
 
-# What is Computational Geometry and why does it matter?
+## What is Computational Geometry and why does it matter?
 
 Computational geometry is a branch of computer science focused on designing and analysing algorithms to solve geometric problems involving points, lines, polygons, and other shapes, usually in two or three dimensions. It matters because many real-world applications-from computer graphics and robotics to geographic information systems (GIS) and computer-aided design (CAD)-rely on efficiently processing and querying geometric data.
 
@@ -63,9 +72,9 @@ In computational geometry, various libraries and tools are used to implement alg
 
 - **Shapely**: [Shapely](https://shapely.readthedocs.io/) - A Python library for manipulation and analysis of planar geometric objects.
 
-## DEMO: Nearest Neighbour Problem
+## DEMO: Nearest Neighbour (NN) Problem
 
-We have selected the **nearest neighbour problem** as a "Hello World" style demonstration of computational geometry.
+We have selected the **nearest neighbour problem** as a "`Hello World`" style demonstration of computational geometry.
 
 The **nearest neighbour problem**, finding the closest point(s) in a dataset to a given query point, is a fundamental example of computational geometry. It illustrates key concepts such as spatial data structures (like kd-trees), distance metrics, and efficient search algorithms. Nearest neighbour search is widely used in recommendation systems, clustering, pattern recognition, and many other fields where understanding proximity in geometric or feature space is essential.
 
@@ -73,22 +82,24 @@ By studying nearest neighbour algorithms, one gains insight into how computation
 
 ### Demo App and Backend Approach
 
-To bring the nearest neighbour problem to life, we have developed an interactive demonstration app that lets you generate random point sets, run nearest neighbour queries, and visualise the results. The app is built with a modular backend, allowing you to compare and explore several industry-standard approaches to nearest neighbour search:
+To bring the nearest neighbour problem to life, we have developed an interactive demonstration app that lets you generate random point sets, run nearest neighbour queries, and visualise the results.
 
-- **C++/CGAL Backend:** Uses the Computational Geometry Algorithms Library (CGAL) to build a robust kd-tree and perform exact nearest neighbour queries with high performance and reliability, serving as a reference implementation for computational geometry.
-- **C++/nanoflann Backend:** Offers a lightweight, header-only kd-tree (nanoflann) for fast, exact nearest neighbour search, ideal for large in-memory datasets and batch processing.
-- **Python Backend:** Utilises scikit-learn’s KDTree for easy prototyping and teaching, making it accessible for those new to computational geometry.
-- **SQL/DuckDB Backend:** Demonstrates a less conventional approach, showing how modern analytics databases can solve geometric problems at scale using SQL and the VSS (Vector Similarity Search) extension. This enables fast, approximate nearest neighbour search to be performed directly within SQL queries. This backend highlights the power of SQL-based analytics for geometric problems, in contrast to traditional in-memory algorithms.
+The app is built with a modular backend, allowing you to compare and explore several industry-standard approaches to nearest neighbour search:
+
+- **C++/CGAL Backend:** Uses the Computational Geometry Algorithms Library ([`CGAL`](https://www.cgal.org)) to build a robust kd-tree and perform exact nearest neighbour queries with high performance and reliability, serving as a reference implementation for computational geometry.
+- **C++/nanoflann Backend:** Offers a lightweight, header-only kd-tree ([`nanoflann`](https://github.com/jlblancoc/nanoflann)) for fast, exact nearest neighbour search, ideal for large in-memory datasets and batch processing.
+- **Python Backend:** Utilises [`scikit-learn`](https://scikit-learn.org)’s KDTree for easy prototyping and teaching, making it accessible for those new to computational geometry.
+- **SQL/DuckDB Backend:** Demonstrates a less conventional approach, showing how modern analytics databases (e.g. [DuckDB](https://duckdb.org)) can solve geometric problems at scale using SQL and the VSS (Vector Similarity Search) extension. This enables fast, approximate nearest neighbour search to be performed directly within SQL queries. This backend highlights the power of SQL-based analytics for geometric problems, in contrast to traditional in-memory algorithms.
 
 The app’s architecture is designed for clarity and extensibility:
 
 - **Backend modules** encapsulate each algorithm and data structure, exposing a consistent interface for queries and benchmarking.
-- **Frontend visualisation** (via [Streamlit](https://streamlit.iol) allows users to interactively generate data, run searches, and compare results across backends.
+- **Frontend visualisation** (via [Streamlit](https://streamlit.io) allows users to interactively generate data, run searches, and compare results across backends.
 - **Documentation and methods** (see [`README_methods.md`](README_methods.md)) explain the theory and implementation details, helping you understand both the “how” and the “why” of each approach.
 
 By providing multiple backends and a unified interface, this demo not only showcases the computational geometry foundations of the nearest neighbour problem, but also offers a practical comparison of algorithmic and data engineering strategies-from classic C++ libraries to modern SQL analytics.
 
-## Introductory CG and Nearest Neighbour References
+## References: Introductory CG and Nearest Neighbour Algorithms
 
 1. [Computational Geometry - Wikipedia](https://en.wikipedia.org/wiki/Computational_geometry)
 1. [Lecture Notes on Computational Geometry - CMU](https://www.cs.cmu.edu/~15451-f22/lectures/lec21-geometry.pdf)
