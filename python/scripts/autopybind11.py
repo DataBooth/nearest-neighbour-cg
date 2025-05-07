@@ -13,13 +13,13 @@ class AutoPybind11:
         self.cpp_code = self.cpp_path.read_text()
         self.module_name = self.cpp_path.stem + "_cpp"
         self.binding_path = self.cpp_path.with_name(
-            self.cpp_path.stem + "_bindings.cpp"
+            self.cpp_path.stem + "_bindings_tmp.cpp"
         )
         self.classes = []  # List of (class_name, methods)
 
     def parse_classes(self):
         # Find all top-level class definitions
-        class_pattern = re.compile(r"class\s+(\w+)\s*{([^}]*)};", re.DOTALL)
+        class_pattern = re.compile(r"class\s+(\w+)\s*\{([\s\S]*?)\};", re.MULTILINE)
         # Only match public methods, skip destructors/operators
         method_pattern = re.compile(
             r"(?:public:)?\s*([^\s]+)\s+(\w+)\(([^)]*)\)(\s*const)?\s*[{;]"
