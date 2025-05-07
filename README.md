@@ -82,7 +82,7 @@ By studying nearest neighbour algorithms, one gains insight into how computation
 
 ### Demo App and Backend Approach
 
-To bring the nearest neighbour problem to life, we have developed an interactive demonstration app that lets you generate random point sets, run nearest neighbour queries, and visualise the results.
+To bring the nearest neighbour problem to life, we have developed an interactive demonstration app (see below) that lets you generate random point sets, run nearest neighbour queries, and visualise the results.
 
 The app is built with a modular backend, allowing you to compare and explore several industry-standard approaches to nearest neighbour search:
 
