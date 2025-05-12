@@ -2,7 +2,16 @@
 
 # Implementations of nearest neighbour calculations for Computational Geometry (CG): A demonstration.
 
+## Status
+
+![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)
+
+*This project is in an experimental stage. It is not yet ready for production use and may contain bugs or incomplete features. Use at your own risk! In particular the Python wrappers for the C++ functions are in the process of being refactored and re-tested.*
+
+______________________________________________________________________
+
 - [Implementations of nearest neighbour calculations for Computational Geometry (CG): A demonstration.](#implementations-of-nearest-neighbour-calculations-for-computational-geometry-cg-a-demonstration)
+  - [Status](#status)
   - [What is Computational Geometry and why does it matter?](#what-is-computational-geometry-and-why-does-it-matter)
   - [Applications of Computational Geometry](#applications-of-computational-geometry)
     - [Automated Embroidery](#automated-embroidery)
