@@ -55,7 +55,7 @@ run:
 # NOTE: Use the uv package manager to install dependencies (see https://docs.astral.sh/uv/)
 
 # Run the Streamlit app (within the Python virtual environment)
-app:
+app:    
     #!/bin/bash
     if [ -z "$VIRTUAL_ENV" ]; then
         echo "Please activate the virtual environment first."
@@ -71,3 +71,10 @@ app:
     fi
 
     streamlit run {{app_name}}
+
+
+## ----- Convex Hull demo -------
+
+# Build the convex hull extension
+build-ch:
+    g++ -I/usr/include/python3.x -I/usr/local/include/boost -shared -fPIC convex_hull_ext.cpp -lboost_python3x -lpython3.x -o convex_hull_ext.so

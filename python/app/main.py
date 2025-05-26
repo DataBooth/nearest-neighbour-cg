@@ -9,7 +9,7 @@ import streamlit as st
 from loguru import logger
 from sklearn.neighbors import KDTree
 
-from src.kdtree_backend import PythonKDTree
+from python.src.kdtree_backends import PythonKDTree
 # from python_duckdb_backend import DuckDBNearestNeighbour
 # from python_cgal_backend import CGALKDTreeBackend
 # from python_cpp_backend import CppKDTreeBackend
