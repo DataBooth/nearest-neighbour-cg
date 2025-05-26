@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(
     ${PROJECT_SOURCE_DIR}/cpp/include
     /opt/homebrew/include
-    /opt/homebrew/opt/python@3.11/Frameworks/Python.framework/Versions/3.11/include/python3.11
 )
 
 # Add the executable for your main C++ app (if needed)
@@ -25,6 +24,7 @@ endif()
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 REQUIRED)
+find_package(Boost REQUIRED)  # Only need Boost.Geometry, not Boost.Python
 
 message(STATUS "Using Python3_EXECUTABLE: ${Python3_EXECUTABLE}")
 message(STATUS "Using Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}")
@@ -51,9 +51,7 @@ if(APPLE)
     set_target_properties(kd_tree_cpp PROPERTIES SUFFIX ".so")
 endif()
 
-# --- Convex Hull Boost.Python Extension ---
-find_package(Boost REQUIRED COMPONENTS python)
-
+# --- Convex Hull Pybind11 Extension ---
 add_library(convex_hull_ext MODULE
     cpp/bindings/convex_hull_ext.cpp
 )
@@ -65,8 +63,9 @@ target_include_directories(convex_hull_ext PRIVATE
 )
 
 target_link_libraries(convex_hull_ext PRIVATE
-    ${Boost_LIBRARIES}
+    pybind11::module
     Python3::Python
+    ${Boost_LIBRARIES}
 )
 
 set_target_properties(convex_hull_ext PROPERTIES PREFIX "")
@@ -76,4 +75,3 @@ if(APPLE)
 endif()
 
 message(STATUS "Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}")
-
