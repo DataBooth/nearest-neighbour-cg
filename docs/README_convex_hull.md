@@ -1,21 +1,38 @@
-# Convex Hull Example: Fast C++ Backend with Python Visualisation
+This project demonstrates how to use **C++** (via `Boost.Geometry`) for efficient computational geometry, and **Python** (with Plotly) for interactive visualisation computing the convex hull in 2D for various distributions of points.
 
-This project demonstrates how to use **C++** (via `Boost.Python` and `Boost.Geometry`) for efficient computational geometry, and **Python** (with Plotly) for interactive visualisation.
+## What the hull?
+
+A [**convex hull**](https://en.wikipedia.org/wiki/Convex_hull) is the smallest convex set that contains a given set of points in a space. In other words, it is the minimal convex boundary that completely encloses all the points. Convex means that, for any two points inside the shape, the straight line segment connecting them is also entirely inside the shape.
+
+More formally, the convex hull of a set $X$ can be defined in several equivalent ways:
+
+- It is the intersection of all convex sets containing $X$.
+- It is the set of all convex combinations of points in $X$.
+- For a finite set of points in the plane, you can imagine stretching a rubber band around the outside of the points; when released, the band forms the convex hull.
+
+In two dimensions, the convex hull is a polygon whose vertices are a subset of the input points, and whose interior contains all the points. In three dimensions, it is the smallest convex polyhedron enclosing the points.
+
+## Features
+
+- Efficient 2D convex hull computation using C++ and `Boost.Geometry`.
+- Python interface via [`pybind11`](https://pybind11.readthedocs.io).
+- Interactive low-code [Streamlit](https://streamlit.io) app for visualising convex hulls of random point distributions.
+- Cross-platform build with `CMake`.
 
 ______________________________________________________________________
 
 ## 1. Overview
 
-- **Backend:** C++ code using Boost.Geometry and Boost.Python to compute the convex hull of a set of points.
-- **Frontend:** Python script to generate points, call the C++ function, and visualise the result using Plotly.
+- **Backend:** C++ code using `Boost.Geometry` and `pybind11` to compute the convex hull of a set of points.
+- **Frontend:** Python script to generate points, call the C++ function, and visualise the result using Plotly within a Streamlit app.
 
 ______________________________________________________________________
 
 ## 2. Key Files
 
-- `convex_hull_ext.cpp`   # C++ code with Boost.Python wrapper
-- `convex_hull_ext.so`    # Compiled module
-- `visualise_hull.py`     # Python script for visualisation
+- `convex_hull_ext.cpp` # C++ code with `pybind11` wrapper
+- `convex_hull_ext.so` # Compiled module
+- `visualise_hull.py` # Python script for visualisation
 
 ______________________________________________________________________
 
@@ -23,9 +40,9 @@ ______________________________________________________________________
 
 - **C++ Compiler** (e.g., `g++`)
 - **Python 3.x**
-- **Boost Libraries** (Boost.Geometry, Boost.Python)
+- **Boost Libraries** (`Boost.Geometry`)`and`pybind11\`.
 - **Plotly** (Python package)
-- **numpy** (Python package)
+- **Streamlit** (Python package)
 
 ______________________________________________________________________
 
@@ -33,127 +50,27 @@ ______________________________________________________________________
 
 ### Install Dependencies
 
-**On Ubuntu:**
-
-```sh
-sudo apt-get update
-sudo apt-get install g++ python3-dev libboost-python-dev libboost-geometry-dev
-uv add numpy plotly
-```
-
 **On MacOS (with Homebrew):**
 
 ```sh
 brew install boost python3
-uv add numpy plotly
+uv add numpy plotly streamlit
 ```
 
 ______________________________________________________________________
 
 ## 5. Build the C++ Module
 
-Compile the C++ code to create a Python-importable module:
-
-```sh
-g++ -I/usr/include/python3.x -I/path/to/boost \
-    -shared -fPIC convex_hull_ext.cpp -lboost_python3x -lpython3.x -o convex_hull_ext.so
-```
-
-*Replace `/usr/include/python3.x` and `/path/to/boost` with your actual paths if needed.*
+Compile the C++ code to create a Python-importable module using `CMake`. See `justfile` for build recipe.
 
 ______________________________________________________________________
 
-## 6. Example C++ Code
-
-**convex_hull_ext.cpp:**
-
-```cpp
-#include 
-#include 
-#include 
-#include 
-#include 
-
-namespace bg = boost::geometry;
-typedef bg::model::d2::point_xy Point;
-typedef bg::model::polygon Polygon;
-
-std::vector> compute_convex_hull(const std::vector>& points) {
-    std::vector bg_points;
-    for (const auto& pt : points) bg_points.push_back(Point(pt[0], pt[1]));
-
-    Polygon hull;
-    bg::convex_hull(bg_points, hull);
-
-    std::vector> result;
-    for (const auto& pt : hull.outer()) {
-        result.push_back({bg::get(pt), bg::get(pt)});
-    }
-    return result;
-}
-
-BOOST_PYTHON_MODULE(convex_hull_ext) {
-    using namespace boost::python;
-    def("compute_convex_hull", compute_convex_hull);
-}
-```
-
-______________________________________________________________________
-
-## 7. Python Visualisation Script
-
-**visualize_hull.py:**
-
-```python
-import convex_hull_ext
-import numpy as np
-import plotly.graph_objects as go
-
-# Generate random points
-points = np.random.rand(1000, 2).tolist()
-
-# Compute convex hull using C++ function
-hull = convex_hull_ext.compute_convex_hull(points)
-hull = np.array(hull)
-
-# Plot all points and convex hull with Plotly
-fig = go.Figure()
-
-# Scatter plot of all points
-fig.add_trace(go.Scatter(
-    x=np.array(points)[:,0],
-    y=np.array(points)[:,1],
-    mode='markers',
-    name='Points',
-    marker=dict(size=4, opacity=0.7)
-))
-
-# Line plot of the convex hull (close the loop)
-fig.add_trace(go.Scatter(
-    x=np.append(hull[:,0], hull[0,0]),
-    y=np.append(hull[:,1], hull[0,1]),
-    mode='lines+markers',
-    name='Convex Hull',
-    line=dict(color='red', width=2),
-    marker=dict(color='red', size=6)
-))
-
-fig.update_layout(
-    title='Convex Hull of Random Points (2D)',
-    xaxis_title='X',
-    yaxis_title='Y'
-)
-fig.show()
-```
-
-______________________________________________________________________
-
-## 8. Usage
+## 6. Usage
 
 1. **Build the C++ module** as described above.
 1. **Run the Python script:**
    ```sh
-   python visualise_hull.py
+   streamlit run python/app/hulls.py
    ```
 1. **View the interactive plot** in your browser.
 
@@ -181,14 +98,14 @@ ______________________________________________________________________
 
 ## Appendix: C++ Types and Data Structures in `convex_hull_ext.cpp`
 
-This appendix provides a quick reference to the key types and data structures used in the convex hull C++ extension module.
+This appendix provides a quick reference to the key types and data structures used in the convex hull C++ extension module, now using **`pybind11`** for Python bindings.
 
 ______________________________________________________________________
 
-### 1. **Boost.Geometry Types**
+### 1. **`Boost.Geometry` Types**
 
 | Type | Description | Example Usage |
-|--------------------------------------------|-----------------------------------------------------------------------------------------------------|--------------------------------|
+|----------------------------|------------------------------------------------------------------------------------------|-----------------------|
 | `bg::model::d2::point_xy` | 2D point with double-precision coordinates. | `Point pt(1.0, 2.0);` |
 | `bg::model::polygon` | Polygon type defined by a sequence of 2D points (outer boundary, optionally holes). | `Polygon hull;` |
 
@@ -196,8 +113,8 @@ ______________________________________________________________________
 
 ```cpp
 namespace bg = boost::geometry;
-typedef bg::model::d2::point_xy Point;
-typedef bg::model::polygon Polygon;
+using Point = bg::model::d2::point_xy;
+using Polygon = bg::model::polygon;
 ```
 
 ______________________________________________________________________
@@ -205,19 +122,21 @@ ______________________________________________________________________
 ### 2. **Standard Library Types**
 
 | Type | Description | Example Usage |
-|-----------------------------|--------------------------------------------------------------|-----------------------------|
+|-------------------------------------- |----------------------------------------------------|-------------------------------|
 | `std::vector` | Dynamic array of doubles (used for a single point `[x, y]`). | `std::vector pt;` |
 | `std::vector` | Dynamic array of Boost.Geometry points. | `std::vector pts;` |
 | `std::vector>` | Dynamic array of 2D points, each as `[x, y]`. | `std::vector> points;` |
 
 ______________________________________________________________________
 
-### 3. **Python Interface Types (via Boost.Python)**
+### 3. **Python Interface Types (via `pybind11`)**
 
 | Type | Description |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------------|
-| `std::vector>` (input) | Used to receive a list of `[x, y]` points from Python. |
-| `std::vector>` (output) | Used to return the convex hull as a list of `[x, y]` points to Python. |
+|-----------------------------|-----------------------------------------------------------------------------|
+| `std::vector>` (input) | Receives a list of `[x, y]` points from Python (list of lists). |
+| `std::vector>` (output) | Returns the convex hull as a list of `[x, y]` points to Python. |
+
+- `pybind11` automatically converts between Python lists-of-lists and these C++ types.
 
 ______________________________________________________________________
 
@@ -237,30 +156,39 @@ ______________________________________________________________________
 ### 5. **Summary Table**
 
 | C++ Type / Alias | Purpose / Description | Python Equivalent |
-|---------------------------------|-----------------------------------------------|--------------------------|
+|-----------------------------------|------------------------------------------|-------------------------|
 | `Point` (`bg::model::d2::point_xy`) | 2D point with x and y coordinates | List or tuple `[x, y]` |
 | `Polygon` (`bg::model::polygon`) | Polygon (outer boundary of points) | List of `[x, y]` lists |
-| `std::vector>` | Sequence of points (input/output interface) | List of `[x, y]` lists |
+| `std::vector>` | Sequence of points (input/output) | List of `[x, y]` lists |
 
 ______________________________________________________________________
 
 ### 6. **Conversion Flow**
 
 - **Python → C++:**\
-  Python `List[List[float]]` → C++ `std::vector>` → C++ `std::vector`
-
+  Python `List[List[float]]` → C++ `std::vector>`
 - **C++ → Python:**\
-  C++ `Polygon` → C++ `std::vector>` → Python `List[List[float]]`
+  C++ `std::vector>` → Python `List[List[float]]`
+
+`pybind11` handles these conversions automatically, so you can pass and return nested lists without custom converters.
 
 ______________________________________________________________________
 
-### 7. **Boost.Python Module Declaration**
+### 7. **`pybind11` Module Declaration**
 
 ```cpp
-BOOST_PYTHON_MODULE(convex_hull_ext) {
-    using namespace boost::python;
-    def("compute_convex_hull", compute_convex_hull);
+#include 
+#include 
+
+PYBIND11_MODULE(convex_hull_ext, m) {
+    m.def("compute_convex_hull", &compute_convex_hull, "Compute the convex hull of a set of 2D points");
 }
 ```
 
 - Exposes the C++ function to Python as `convex_hull_ext.compute_convex_hull`.
+
+______________________________________________________________________
+
+**Note:**
+
+- All Python-C++ integration is handled by `pybind11` for simplicity, modern C++ compatibility, and robust type conversion.
