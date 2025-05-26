@@ -32,7 +32,7 @@ ______________________________________________________________________
 
 - `convex_hull_ext.cpp` # C++ code with `pybind11` wrapper
 - `convex_hull_ext.so` # Compiled module
-- `visualise_hull.py` # Python script for visualisation
+- `hulls.py` # Streamlit UI for visualisation
 
 ______________________________________________________________________
 
