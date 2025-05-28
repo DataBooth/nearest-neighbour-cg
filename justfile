@@ -73,8 +73,19 @@ app:
     streamlit run {{app_name}}
 
 
+
+
 ## ----- Convex Hull demo -------
 
 # Build the convex hull extension
 build-ch:
-    g++ -I/usr/include/python3.x -I/usr/local/include/boost -shared -fPIC convex_hull_ext.cpp -lboost_python3x -lpython3.x -o convex_hull_ext.so
+    mkdir -p {{build_dir}}
+    cd {{build_dir}} && cmake 
+
+
+## ----- C++ in Jupyter -------
+
+jupyter-cpp:
+    open https://mybinder.org/v2/gh/jupyter-xeus/xeus-cling/stable?filepath=notebooks/xcpp.ipynb
+
+
