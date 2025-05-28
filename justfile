@@ -73,18 +73,9 @@ app:
     streamlit run {{app_name}}
 
 
+## ----- C++ kernel in Jupyter -------
 
-
-## ----- Convex Hull demo -------
-
-# Build the convex hull extension
-build-ch:
-    mkdir -p {{build_dir}}
-    cd {{build_dir}} && cmake 
-
-
-## ----- C++ in Jupyter -------
-
+# Open cling notebook on Binder (see https://github.com/jupyter-xeus/xeus-cling)
 jupyter-cpp:
     open https://mybinder.org/v2/gh/jupyter-xeus/xeus-cling/stable?filepath=notebooks/xcpp.ipynb
 
