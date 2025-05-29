@@ -74,23 +74,69 @@ ______________________________________________________________________
    ```
 1. **View the interactive plot** in your browser.
 
+Great point! If the **number of points is set by a slider** in your Streamlit app, you should reflect that in your README/documentation. Here’s an updated section that makes it clear:
+
+---
+
+## 7. Distributions Used in This App
+
+This app demonstrates and visualises three types of 2D point distributions. You can control the **number of points** generated using a slider in the sidebar, allowing you to see how algorithms behave with different dataset sizes.
+
+---
+
+### A. Uniform Distribution
+
+- **Description:** Points are spread evenly within a square region.
+- **Parameters:**
+  - **Region:** Square with x and y in 
+  - **Number of points:** *Set by slider* (default: 200)
+- **Properties:** Every location within the square has an equal chance of containing a point. Useful for simulating unbiased random sampling.
+
+---
+
+### B. Gaussian (Normal) Distribution
+
+- **Description:** Points are clustered around a central mean, with density decreasing outward.
+- **Parameters:**
+  - **Mean (center):** (0.5, 0.5)
+  - **Standard deviation:** 0.12 (for both x and y)
+  - **Number of points:** *Set by slider* (default: 200)
+- **Properties:** Most points are near the center, with fewer points farther away. Models natural clustering and randomness around an average.
+
+---
+
+### C. Clustered Distribution
+
+- **Description:** Points are grouped into several tight clusters, each with its own center.
+- **Parameters:**
+  - **Number of clusters:** 4
+  - **Cluster centers:** Randomly placed within [0.2, 0.8] for both x and y
+  - **Cluster standard deviation:** 0.04
+  - **Number of points:** *Set by slider* (default: 200, divided evenly among clusters)
+- **Properties:** Points form several dense "islands" or clusters, simulating real-world scenarios like cities on a map or hotspots in data.
+
+---
+
+**How to use:**  
+Use the sidebar to select a distribution and adjust the number of points with the slider. The app will generate and display a new set of points, letting you observe how geometric algorithms perform on different data layouts and sizes.
+
 ______________________________________________________________________
 
-## 9. Notes
+## 8. Notes
 
 - **Performance:** The C++ backend is much faster for large datasets, making it ideal for computational geometry tasks.
 - **Extensibility:** You can extend this example to other geometric problems or visualisations.
 
 ______________________________________________________________________
 
-## 10. Troubleshooting
+## 9. Troubleshooting
 
 - **Module not found:** Ensure `convex_hull_ext.so` is in the same directory as your Python script.
 - **Boost/Python paths:** Adjust include and library paths in the compilation command if needed.
 
 ______________________________________________________________________
 
-## 11. License
+## 10. License
 
 This example is provided under the Apache 2.0 License.
 
