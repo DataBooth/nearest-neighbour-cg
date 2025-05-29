@@ -88,7 +88,7 @@ This app demonstrates and visualises three types of 2D point distributions. You 
 
 - **Description:** Points are spread evenly within a square region.
 - **Parameters:**
-  - **Region:** Square with x and y in 
+  - **Region:** Square with x and y in $[0, 1]$
   - **Number of points:** *Set by slider* (default: 200)
 - **Properties:** Every location within the square has an equal chance of containing a point. Useful for simulating unbiased random sampling.
 
