@@ -1,6 +1,12 @@
 # This is a Justfile (https://just.systems/man/en/) for managing C++ and Python projects 
 # with recipes for building, cleaning, and running applications.
 
+# Variables
+app_name := "python/app/hulls.py"
+image_name := "cpp-python-app"  # Name of the Docker image
+dockerfile := "Dockerfile"
+context := "."
+
 # Detect compiler: prefer g++, fallback to clang++
 compiler := `if command -v g++ > /dev/null 2>&1; then echo g++; elif command -v clang++ > /dev/null 2>&1; then echo clang++; else echo ""; fi`
 
@@ -9,8 +15,6 @@ build_dir := "build"
 
 # Set target executable name
 target := "nearest_neighbour"
-
-app_name := "python/app/main.py"
 
 # Default recipe: lists all available recipes
 default:
@@ -50,6 +54,13 @@ run:
    cd {{build_dir}} && ./{{target}}
 
 
+# Build and run the convex hull C++ test
+test-cpp-convex-hull:
+    mkdir -p build
+    cd build && cmake .. && make test_convex_hull
+    ./build/test_convex_hull
+
+
 ##  Python recipes  ---------------------------------------------------
 
 # NOTE: Use the uv package manager to install dependencies (see https://docs.astral.sh/uv/)
@@ -80,3 +91,30 @@ jupyter-cpp:
     open https://mybinder.org/v2/gh/jupyter-xeus/xeus-cling/stable?filepath=notebooks/xcpp.ipynb
 
 
+# ------------- Docker Recipes --------------
+
+# Check Docker context using your tool before building
+docker-check:
+    docker-context-tree --context {{context}} --dockerfile {{dockerfile}}
+
+# Build the Docker image
+docker-build:
+    docker build -t {{image_name}} -f {{dockerfile}} {{context}}
+
+# Run the Docker container (adjust ports as needed)
+docker-run:
+    docker run --rm -p 8501:8501 {{image_name}}
+
+# Clean up dangling Docker images
+docker-clean:
+    docker image prune -f
+
+# Push Docker image to registry (set $TAG and $REGISTRY as needed)
+docker-push tag="latest" registry="":
+    #!/bin/bash
+    if [ -z "{{registry}}" ]; then
+        echo "No registry specified. Skipping push."
+        exit 1
+    fi
+    docker tag {{image_name}} {{registry}}/{{image_name}}:{{tag}}
+    docker push {{registry}}/{{image_name}}:{{tag}}

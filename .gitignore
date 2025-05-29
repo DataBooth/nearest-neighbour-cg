@@ -4,6 +4,7 @@
 # Project-specific directories
 .vscode/
 data/
+build/
 
 # Python-specific patterns
 # Byte-compiled / optimized / DLL files

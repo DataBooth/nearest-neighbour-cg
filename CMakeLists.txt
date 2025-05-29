@@ -4,9 +4,11 @@ project(nearest_neighbour_demo)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add include directories for your C++ code
+# Add include directories for your C++ code (project-wide)
 include_directories(
     ${PROJECT_SOURCE_DIR}/cpp/include
+    ${PROJECT_SOURCE_DIR}/cpp/bindings
+    ${PROJECT_SOURCE_DIR}/cpp/tests
     /opt/homebrew/include
 )
 
@@ -75,3 +77,27 @@ if(APPLE)
 endif()
 
 message(STATUS "Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}")
+
+# --- Unit Tests for Convex Hull ---
+enable_testing()
+
+# Find Catch2 v3 (installed via Homebrew or system)
+find_package(Catch2 3 REQUIRED)
+
+add_executable(test_convex_hull
+    cpp/tests/test_convex_hull.cpp
+)
+
+target_include_directories(test_convex_hull PRIVATE
+    cpp/include
+    cpp/bindings
+    cpp/tests
+    ${Boost_INCLUDE_DIRS}
+    ${Python3_INCLUDE_DIRS}
+)
+
+target_link_libraries(test_convex_hull PRIVATE
+    Catch2::Catch2WithMain
+    ${Boost_LIBRARIES}
+    Python3::Python
+)
